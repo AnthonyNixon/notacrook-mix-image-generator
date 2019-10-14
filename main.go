@@ -16,10 +16,8 @@ import (
 )
 
 var (
-	backgroundWidth  = 650
-	backgroundHeight = 150
 	utf8FontFile     = "impact.ttf"
-	utf8FontSize     = float64(120)
+	utf8FontSize     = float64(160)
 	spacing          = float64(1.5)
 	dpi              = float64(72)
 	ctx              = new(freetype.Context)
@@ -85,12 +83,11 @@ func main() {
 	ctx.SetDst(img)
 	ctx.SetSrc(fontForeGroundColor)
 
-	UTF8Text := "In the Whitehouse #006"
+	pt := freetype.Pt(400, 2300)
 
-	pt := freetype.Pt(100, 2200)
+	title := os.Args[1]
 
-
-	_, err = ctx.DrawString(UTF8Text, pt)
+	_, err = ctx.DrawString(title, pt)
 	if err != nil {
 		fmt.Println(err)
 	}
