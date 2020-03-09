@@ -8,11 +8,13 @@ import (
 	"image/png"
 	_ "image/png"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"time"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"math/rand"
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -28,6 +30,18 @@ var (
 )
 
 func main() {
+	router := gin.Default()
+	router.GET("/", handler)
+
+	port := ":" + os.Getenv("PORT")
+	if port == ":" {
+		port = ":8080"
+	}
+
+	router.Run(port)
+ }
+
+func handler(c *gin.Context) {
 	width := 2600
 	height := 2600
 
@@ -54,11 +68,15 @@ func main() {
 	imgFile, err := os.Open("not_a_crook_logo.png")
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	logoImg, _, err := image.Decode(imgFile)
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	draw.Draw(img, image.Rectangle{Min: image.Point{X:365, Y: 100}, Max: image.Point{X: 2235, Y: 2108}}, logoImg, image.Point{0,0}, draw.Over)
@@ -66,11 +84,15 @@ func main() {
 	fontBytes, err := ioutil.ReadFile(utf8FontFile)
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	utf8Font, err = freetype.ParseFont(fontBytes)
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	fontForeGroundColor := image.NewUniform(white)
@@ -84,27 +106,42 @@ func main() {
 
 	titlePt := freetype.Pt(400, 2250)
 
-	title := os.Args[1]
+	title := c.Query("title")
 
 	_, err = ctx.DrawString(title, titlePt)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
+		return
 	}
 
-	if len(os.Args) > 2 {
+	subtitle := c.Query("subtitle")
+
+	if subtitle != "" {
 		subtitlePt := freetype.Pt(400, 2425)
-		subtitle := os.Args[2]
 		_, err = ctx.DrawString(subtitle, subtitlePt)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 
 	out, err := os.Create("output.png")
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	err = png.Encode(out, img)
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
+	c.Status(200)
+	c.File("output.png")
 }
