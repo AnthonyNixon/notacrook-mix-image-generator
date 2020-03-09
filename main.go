@@ -107,6 +107,11 @@ func handler(c *gin.Context) {
 	titlePt := freetype.Pt(400, 2250)
 
 	title := c.Query("title")
+	number := c.Query("number")
+
+	if number != "" {
+		title = fmt.Sprintf("%s #%s", title, number)
+	}
 
 	_, err = ctx.DrawString(title, titlePt)
 	if err != nil {
