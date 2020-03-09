@@ -28,7 +28,6 @@ var (
 )
 
 func main() {
-	// 1870 x 2008
 	width := 2600
 	height := 2600
 
@@ -83,13 +82,19 @@ func main() {
 	ctx.SetDst(img)
 	ctx.SetSrc(fontForeGroundColor)
 
-	pt := freetype.Pt(400, 2300)
+	titlePt := freetype.Pt(400, 2250)
 
 	title := os.Args[1]
 
-	_, err = ctx.DrawString(title, pt)
+	_, err = ctx.DrawString(title, titlePt)
 	if err != nil {
 		fmt.Println(err)
+	}
+
+	if len(os.Args) > 2 {
+		subtitlePt := freetype.Pt(400, 2425)
+		subtitle := os.Args[2]
+		_, err = ctx.DrawString(subtitle, subtitlePt)
 	}
 
 
